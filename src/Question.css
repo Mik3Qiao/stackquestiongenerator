@@ -1,0 +1,116 @@
+.individualQuestion{
+  min-width: 800px;
+}
+
+.vote{
+  width: 80px;
+  height: 80px;
+}
+
+.vote
+> .numberArea{
+  width: 60px;
+  height: 55px;
+  margin: 0px 10px 0px 10px;
+  font-size: xx-large;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+}
+
+.rightPart{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.creationDate{
+  height: 24px;
+  color: gray;
+  text-align: right;
+}
+
+.titleArea{
+  height: 56px;
+}
+
+.fullQuestionArea{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.questionArea, .commentArea, .answerArea, .commentofAnswers{
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.commentofAnswers{
+  margin-left: 35px;
+}
+
+.commentArea{
+  margin-left: 30px;
+}
+
+.fillAnswerArea{
+  padding-top: 20px;
+}
+
+.questionArea-voteArea{
+  font-size: xx-large;
+  font-weight: bold;
+  width: 30px;
+  color: orangered;
+  display: flex;
+  align-self: top;
+}
+
+.commentArea-voteArea{
+  width: 15px;
+  color: orangered;
+}
+
+.answerArea-voteArea{
+  font-size: x-large;
+  font-weight: bold;
+  width: 30px;
+  color: orangered;
+  display: flex;
+  align-self: top;
+}
+
+.commentofAnswers-voteArea{
+  width: 15px;
+  color: orangered;
+}
+
+.questionArea-textArea, .commentArea-textArea, .answerArea-textArea, .commentofAnswers-textArea{
+  margin-left: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.questionArea-textArea{
+  width: calc(100% - 30px);
+}
+
+.commentArea-textArea{
+  width: calc(100% - 30px - 15px - 5px - 5px);
+}
+
+.answerArea-textArea{
+  width: calc(100% - 30px);
+}
+
+.commentofAnswers-textArea{
+  width: calc(100% - 35px - 15px - 5px);
+}
+
+.questionArea-Time, .commentArea-Time, .answerArea-Time, .commentofAnswers-Time{
+  width: calc(100% - 5px);
+  text-align: end;
+  color: gray;
+}
