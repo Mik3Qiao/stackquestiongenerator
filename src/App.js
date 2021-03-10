@@ -5,21 +5,34 @@ import {
   Button, 
   Typography,
   TextField,
-  Divider
+  Divider,
+  Tooltip,
+  Snackbar
 } from "@material-ui/core"
 import axios from "axios"
-import Question from "./Question";
+import Question from "./Question"
+import ExpandLessIcon from '@material-ui/icons/ExpandLess'
+import MuiAlert from '@material-ui/lab/Alert'
 
 import './App.css'
 
 class App extends Component{
   state = {
     tag: "",
-    allQuestions: []
+    textFieldError: false,
+    allQuestions: [],
+    fetchMessage: false,
+    fetchSuccess: false,
+    fetchWarning: false,
+    responseTime: -0.1
   }
 
   componentDidMount (){
     this.clearTextField();
+  }
+
+  componentWillUnmount(){
+    this.resetStatus()
   }
   
   render(){
@@ -69,6 +82,7 @@ class App extends Component{
                 marginBottom: 4, 
                 marginRight: 20
               }}
+              error = {this.state.textFieldError}
               placeholder = "Enter the tag to search here"
               onChange={this.handleTagChange}
             />
@@ -86,27 +100,90 @@ class App extends Component{
             </Button>
           </Toolbar>
         </AppBar>
-        {this.state.allQuestions.length === 0 
-          ? 
-            null 
-          : 
-          this.state.allQuestions.map((item, index)=>{
-            return (
-              <React.Fragment key = {index}>
-              <Question
-                key = {index}
-                item = {item}
+        {this.displaySearchMessage()}
+        <div className = "QuestionContent">
+          {this.state.allQuestions.length === 0 
+            ? 
+              null 
+            : 
+            this.state.allQuestions.map((item, index)=>{
+              return (
+                <React.Fragment key = {index}>
+                  <Question
+                    key = {index}
+                    item = {item}
+                  />
+                  <Divider style = {{width: "calc(100% - 60px)"}}/>
+                </React.Fragment>
+              )
+            })
+          }
+          <div className = "rightPanel">
+            <Tooltip title = "back to top">
+              <ExpandLessIcon
+                fontSize = "large"
+                className = "scrollTopIcon"
+                onClick = {()=>{
+                  window.scrollTo({top: 0, behavior: "smooth"})
+                }}
               />
-              <Divider/>
-              </React.Fragment>
-            )
-          })
-        }
+            </Tooltip>
+          </div>
+        </div>
       </div>
     )
   }
 
+  displaySearchMessage = () =>{
+    let alertMessage ;
+    if (this.state.fetchSuccess){
+      alertMessage = (
+        <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="success">
+          response time {this.state.responseTime} seconds
+        </MuiAlert>
+      )
+    }
+    else if (!this.state.fetchSuccess && this.state.fetchWarning){
+      alertMessage = (
+        <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="error">
+          Please check your tag input
+        </MuiAlert>
+      )
+    }
+    else if (!this.state.fetchSuccess && !this.state.fetchWarning){
+      alertMessage = (
+        <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="warning">
+          You've exceeded your maximum time for today
+        </MuiAlert>
+      )
+    }
+    return (
+      <Snackbar
+        open={this.state.fetchMessage} 
+        autoHideDuration={3000} 
+        onClose={this.handleCloseFetchNotice}
+      >
+        {alertMessage}
+      </Snackbar>
+    )
+  }
+
+  handleCloseFetchNotice = (event) => {
+    this.setState({
+      fetchMessage: false
+    })
+  }
+
   fetchAllQuestions = () => {
+    if (this.state.tag.trim() === ""){
+      this.setState({
+        textFieldError: true,
+        fetchMessage: true,
+        fetchSuccess: false,
+        fetchWarning: true
+      })
+      return
+    }
     const currTime = Math.round(Date.now()/1000) // current epoch time
     const weekAgo = currTime - (7 * 24 * 60 * 60) // epoch time for a week ago
 
@@ -135,6 +212,7 @@ class App extends Component{
     
     let questions = [];
     let sortedQuestions;
+    let time1 = performance.now()
     axios.all([
       axios.get(url1),
       axios.get(url2)
@@ -155,16 +233,55 @@ class App extends Component{
             questions.push(item)
           })
         }
+        let time2 = performance.now()
         sortedQuestions = this.sortArray(questions, 0, questions.length - 1)
+        if (responses[0].data.items.length + responses[1].data.items.length === 0){
+          this.setState({
+            fetchMessage: true,
+            fetchSuccess: false,
+            fetchWarning: true
+          })
+          return
+        }
         this.setState({
-          allQuestions: sortedQuestions
+          allQuestions: sortedQuestions,
+          responseTime: parseFloat((Math.floor(time2 - time1) + 1) / 1000),
+          fetchSuccess: true,
+          fetchWarning: false
         })
       }
+      else{
+        this.setState({
+          fetchSuccess: false,
+          fetchWarning: false
+        })
+      }
+      this.setState({
+        fetchMessage: true
+      })
     }))
+    .catch(error=>{
+      this.setState({
+        fetchMessage: true,
+        fetchSuccess: false,
+        fetchWarning: true
+      })
+    })
     return sortedQuestions
   }
 
+  resetStatus = () =>{
+    this.setState({
+      textFieldError: false,
+      fetchMessage: false,
+      fetchSuccess: false,
+      fetchWarning: false,
+      responseTime: -0.1
+    })
+  }
+
   handleSearch = () =>{
+    this.resetStatus()
     this.fetchAllQuestions()
   }
 
@@ -221,7 +338,8 @@ class App extends Component{
 
   handleTagChange = (event) =>{
     this.setState({
-      tag: event.target.value
+      tag: event.target.value,
+      textFieldError: false
     })
   }
 }

@@ -1,12 +1,18 @@
 import React, { Component } from "react"
 import Highlight from 'react-highlight'
 import moment from "moment"
-import { Divider, Paper, Typography } from "@material-ui/core";
+import { 
+  Divider, 
+  Paper, 
+  Typography,
+  Snackbar
+} from "@material-ui/core";
 import axios from "axios"
 import Accordion from '@material-ui/core/Accordion';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import MuiAlert from '@material-ui/lab/Alert'
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Question.css"
@@ -14,8 +20,17 @@ import "./Question.css"
 class Question extends Component{
   state = {
     open: false,
-    questionContent: null
+    questionContent: null,
+    fetchQMessage: false,
+    fetchQuestionSuccess: false,
+    fetchQuestionWarning: false,
+    responseTime: -0.1
   }
+
+  componentWillUnmount = () =>{
+    this.resetStatus()
+  }
+
   render(){
     return(
       <div className = "individualQuestion">
@@ -75,6 +90,15 @@ class Question extends Component{
     )
   }
 
+  resetStatus = () =>{
+    this.setState({
+      fetchQMessage: false,
+      fetchQuestionSuccess: false,
+      fetchQuestionWarning: false,
+      responseTime: -0.1
+    })
+  }
+
   converFromUnixTime = (unitEpoch) =>{
     return(
       moment.unix(unitEpoch).format('dddd, MMMM Do, YYYY h:mm:ss A')
@@ -128,6 +152,7 @@ class Question extends Component{
         </Paper>
         {/* this shows answers that belong to a question */}
         {this.displayAnswers()}
+        {this.handleDisplayFullQ()}
       </div>
     )
   }
@@ -216,6 +241,7 @@ class Question extends Component{
 
   handleClick = () =>{
     if (!this.state.open){
+      this.resetStatus()
       this.fetchFullQuestion()
     }
     this.setState({
@@ -224,6 +250,7 @@ class Question extends Component{
   }
 
   fetchFullQuestion = () =>{
+    let time1 = performance.now()
     let url = "https://api.stackexchange.com/2.2/questions/"
     let questionUrl = url.concat(String(this.props.item.question_id))
     questionUrl = questionUrl.concat("?site=stackoverflow&filter=!IKWum-iRYz9H2TDeF4twRFD6S(8QXKFfsxX0rw(WRWJlF8T")
@@ -232,13 +259,73 @@ class Question extends Component{
     axios.get(questionUrl)
     .then((response) =>{
       if(response.status === 200 && response.data.items){
-        console.log(response.data.items)
+        let time2 = performance.now()
         this.setState({
-          questionContent: response.data.items[0]
+          fetchQuestionSuccess: true,
+          fetchQuestionWarning: false,
+          questionContent: response.data.items[0],
+          responseTime: parseFloat((Math.floor(time2 - time1) + 1)/1000)
         })
       }
+      else{
+        this.setState({
+          fetchQuestionSuccess: false,
+          fetchQuestionWarning: false
+        })
+      }
+      this.setState({
+        fetchQMessage: true
+      })
+    })
+    .catch(()=>{
+      this.setState({
+        fetchQMessage: true,
+        fetchQuestionSuccess: false,
+        fetchQuestionWarning: true
+      })
     })
   }
+
+  handleDisplayFullQ = () =>{
+    let alertMessage ;
+    if (this.state.fetchQuestionSuccess){
+      alertMessage = (
+        <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="success">
+          response time {this.state.responseTime} seconds
+        </MuiAlert>
+      )
+    }
+    else if (!this.state.fetchQuestionSuccess && this.state.fetchQuestionWarning){
+      alertMessage = (
+        <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="error">
+          Please check your tag input
+        </MuiAlert>
+      )
+    }
+    else if (!this.state.fetchQuestionSuccess && !this.state.fetchQuestionWarning){
+      alertMessage = (
+        <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="warning">
+          You've exceeded your maximum time for today
+        </MuiAlert>
+      )
+    }
+    return (
+      <Snackbar
+        open={this.state.fetchQMessage} 
+        autoHideDuration={3000} 
+        onClose={this.handleCloseFetchNotice}
+      >
+        {alertMessage}
+      </Snackbar>
+    )
+  }
+
+  handleCloseFetchNotice = (event) => {
+    this.setState({
+      fetchQMessage: false
+    })
+  }
+
 }
 
 export default Question;

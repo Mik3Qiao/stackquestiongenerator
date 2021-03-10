@@ -1,5 +1,6 @@
 .individualQuestion{
   min-width: 800px;
+  width: calc(100% - 60px);
 }
 
 .vote{
@@ -98,7 +99,7 @@
 }
 
 .commentArea-textArea{
-  width: calc(100% - 30px - 15px - 5px - 5px);
+  width: calc(100% - 30px - 15px - 5px);
 }
 
 .answerArea-textArea{
