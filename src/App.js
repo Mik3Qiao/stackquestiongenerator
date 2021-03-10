@@ -144,9 +144,16 @@ class App extends Component{
       )
     }
     else if (!this.state.fetchSuccess && this.state.fetchWarning){
+      let warningMessage
+      if (this.state.tag.trim() === ""){
+        warningMessage = "Please enter a tag value"
+      }
+      else{
+        warningMessage = "Please check your tag value, 0 results for current input"
+      }
       alertMessage = (
         <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="error">
-          Please check your tag value, 0 results for current tag
+          {warningMessage}
         </MuiAlert>
       )
     }
@@ -237,6 +244,7 @@ class App extends Component{
         sortedQuestions = this.sortArray(questions, 0, questions.length - 1)
         if (responses[0].data.items.length + responses[1].data.items.length === 0){
           this.setState({
+            textFieldError: true,
             fetchMessage: true,
             fetchSuccess: false,
             fetchWarning: true
@@ -337,6 +345,11 @@ class App extends Component{
   }
 
   handleTagChange = (event) =>{
+    if (this.state.textFieldError){
+      this.setState({
+        textFieldError: false
+      })
+    }
     this.setState({
       tag: event.target.value
     })
