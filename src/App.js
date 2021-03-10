@@ -146,7 +146,7 @@ class App extends Component{
     else if (!this.state.fetchSuccess && this.state.fetchWarning){
       alertMessage = (
         <MuiAlert elevation={6} variant="filled" onClose={this.handleCloseFetchNotice} severity="error">
-          Please check your tag input
+          Please check your tag value, 0 results for current tag
         </MuiAlert>
       )
     }
@@ -338,8 +338,7 @@ class App extends Component{
 
   handleTagChange = (event) =>{
     this.setState({
-      tag: event.target.value,
-      textFieldError: false
+      tag: event.target.value
     })
   }
 }
