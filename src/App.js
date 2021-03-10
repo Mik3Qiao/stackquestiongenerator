@@ -29,10 +29,12 @@ class App extends Component{
 
   componentDidMount (){
     this.clearTextField();
+    this.resetStatus()
   }
 
   componentWillUnmount(){
     this.resetStatus()
+    this.clearTextField()
   }
   
   render(){
@@ -110,10 +112,11 @@ class App extends Component{
               return (
                 <React.Fragment key = {index}>
                   <Question
-                    key = {index}
+                    key = {"fullQuestion".concat(index)}
+                    index = {index}
                     item = {item}
                   />
-                  <Divider style = {{width: "calc(100% - 60px)"}}/>
+                  <Divider key = {"outerDivider".concat(index)} style = {{width: "calc(100% - 60px)"}}/>
                 </React.Fragment>
               )
             })
@@ -216,6 +219,9 @@ class App extends Component{
       "&tagged=",
       this.state.tag
     )
+    this.setState({
+      allQuestions: []
+    })
     
     let questions = [];
     let sortedQuestions;
@@ -258,21 +264,26 @@ class App extends Component{
           fetchWarning: false
         })
       }
-      else{
+      
+      this.setState({
+        fetchMessage: true
+      })
+    }))
+    .catch((error)=>{
+      if (error.response.data.error_id === 502){
         this.setState({
           fetchSuccess: false,
           fetchWarning: false
         })
       }
+      else{
+        this.setState({
+          fetchSuccess: false,
+          fetchWarning: true
+        })
+      }
       this.setState({
         fetchMessage: true
-      })
-    }))
-    .catch(error=>{
-      this.setState({
-        fetchMessage: true,
-        fetchSuccess: false,
-        fetchWarning: true
       })
     })
     return sortedQuestions

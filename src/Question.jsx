@@ -27,14 +27,22 @@ class Question extends Component{
     responseTime: -0.1
   }
 
-  componentWillUnmount = () =>{
+  componentDidMount (){
+    this.resetStatus()
+  }
+
+  componentWillUnmount (){
     this.resetStatus()
   }
 
   render(){
     return(
-      <div className = "individualQuestion">
+      <div 
+        key = {this.props.index} 
+        className = "individualQuestion"
+      >
         <Accordion
+          key = {this.props.index} 
           expanded = {this.state.open}
           onChange = {this.handleClick}
         >
@@ -47,6 +55,11 @@ class Question extends Component{
               display: "flex",
               flexDirection: "row"
             }}
+            onChange = {()=>{
+              this.setState({
+                open: false
+              })
+            }}
             expandIcon={<ExpandMoreIcon />}
           >
             <div className = "vote">
@@ -54,6 +67,7 @@ class Question extends Component{
                 {this.props.item.score}
               </div>
               <Typography
+                key = {"votesText".concat(this.props.index)} 
                 style = {{
                   textAlign: "center"
                 }}
@@ -72,7 +86,9 @@ class Question extends Component{
                 </Highlight>
               </div>
               <div className = "creationDate">
-                <Typography>
+                <Typography
+                  key = {"timeTypo".concat(this.props.index)} 
+                >
                   Created at: {this.converFromUnixTime(this.props.item.creation_date)}
                 </Typography>
               </div>
@@ -92,6 +108,7 @@ class Question extends Component{
 
   resetStatus = () =>{
     this.setState({
+      open: false,
       fetchQMessage: false,
       fetchQuestionSuccess: false,
       fetchQuestionWarning: false,
@@ -137,8 +154,8 @@ class Question extends Component{
                     {comment.score}
                   </div>
                   <div className = "commentArea-textArea">
-                    <Divider/>
-                    <Highlight innerHTML = {true}>
+                    <Divider />
+                    <Highlight key = {index} innerHTML = {true}>
                       {comment.body}
                     </Highlight>
                     <div className = "commentArea-Time">
@@ -165,6 +182,7 @@ class Question extends Component{
     else{
       result.push(
         <Typography
+          key = {"answersTypo".concat(this.props.index)} 
           style = {{
             fontSize: 22,
             fontWeight: 500,
@@ -186,13 +204,13 @@ class Question extends Component{
       const answers =  this.state.questionContent.answers
       for (let i = 0; i < answers.length; i++){
         result.push(
-          <div className = "fillAnswerArea">
+          <div key = {"answer".concat(i)} className = "fillAnswerArea">
             <div className = "answerArea">
               <div className = "answerArea-voteArea">
                 {answers[i].score}
               </div>
               <div className = "answerArea-textArea">
-                <Highlight innerHTML = {true}>
+                <Highlight key = {"answer".concat(i)}innerHTML = {true}>
                   {answers[i].body}
                 </Highlight>
                 <div className = "answerArea-Time">
@@ -219,7 +237,7 @@ class Question extends Component{
       const comments = individualAnswer.comments
       for (let i = 0; i < comments.length; i++){
         result.push(
-          <div className = "commentofAnswers">
+          <div key = {"comment".concat(i, "of answer", index)} className = "commentofAnswers">
             <div className = "commentofAnswers-voteArea">
               {comments[i].score}
             </div>
@@ -261,27 +279,29 @@ class Question extends Component{
       if(response.status === 200 && response.data.items){
         let time2 = performance.now()
         this.setState({
+          fetchQMessage: true,
           fetchQuestionSuccess: true,
           fetchQuestionWarning: false,
           questionContent: response.data.items[0],
           responseTime: parseFloat((Math.floor(time2 - time1) + 1)/1000)
         })
       }
-      else{
+    })
+    .catch((error)=>{
+      if (error.response.data.error_id === 502){
         this.setState({
           fetchQuestionSuccess: false,
           fetchQuestionWarning: false
         })
       }
+      else{
+        this.setState({
+          fetchQuestionSuccess: false,
+          fetchQuestionWarning: true
+        })
+      }
       this.setState({
         fetchQMessage: true
-      })
-    })
-    .catch(()=>{
-      this.setState({
-        fetchQMessage: true,
-        fetchQuestionSuccess: false,
-        fetchQuestionWarning: true
       })
     })
   }
